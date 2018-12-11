@@ -1,0 +1,9 @@
+/*
+	Jarvis Wang
+*/
+
+/* Loader */
+
+	body:before, body:after {
+		display: none;
+	}
