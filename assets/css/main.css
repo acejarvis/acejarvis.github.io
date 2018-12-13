@@ -1876,6 +1876,11 @@ input, select, textarea {
 						outline: 0;
 					}
 
+					#header nav ul li:hover {
+						
+						color: #a9a9a9;
+					}
+
 		@media screen and (max-width: 736px) {
 
 			#header {
