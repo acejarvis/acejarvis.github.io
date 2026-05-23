@@ -469,7 +469,10 @@ function highlightDay(day) {
     else { el.style.opacity = '0.3'; }
   });
   const pl = dayPolylines[day];
-  if (pl) map.fitBounds(pl.getBounds(), { padding: [60, 60], maxZoom: 10, animate: true });
+  if (pl) {
+    const maxZoom = day === 2 ? 15 : 10;
+    map.fitBounds(pl.getBounds(), { padding: [60, 60], maxZoom, animate: true });
+  }
   else {
     // Day 2 / Day 6 local — zoom to the single stop
     const k = (dayStopKeys[day] || [])[0];
