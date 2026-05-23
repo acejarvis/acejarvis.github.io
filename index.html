@@ -172,11 +172,13 @@
       grid-template-columns: 32px 1fr;
       grid-template-rows: auto auto;
       gap: 6px 8px;
+      cursor: default;
     }
     .day-card .overnight {
       grid-column: 1 / -1;
       display: flex; align-items: center; justify-content: center;
       gap: 8px; padding: 6px 10px; text-align: left;
+      cursor: pointer;
     }
     .day-card .overnight .icon { font-size: 18px; display: inline; margin: 0; }
     .day-card .day-circle { width: 26px; height: 26px; font-size: 13px; }
@@ -517,7 +519,11 @@ document.querySelectorAll('.day-card').forEach(card => {
     card.addEventListener('mouseenter', () => { if (lockedDay === null) highlightDay(day); });
     card.addEventListener('mouseleave', () => { if (lockedDay === null) resetHighlight(); });
   }
-  card.addEventListener('click', () => {
+  card.addEventListener('click', (event) => {
+    if (isNarrow()) {
+      const overnight = event.target.closest('.overnight');
+      if (!overnight) return;
+    }
     if (lockedDay === day) {
       lockedDay = null;
       card.classList.remove('active');
