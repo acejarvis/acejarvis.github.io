@@ -74,10 +74,17 @@
     background: var(--sidebar-bg); border-radius: 8px; overflow: hidden;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2); max-height: 880px; overflow-y: auto;
   }
-  .sidebar-header {
-    background: var(--gold); color: var(--sidebar-bg); text-align: center;
+  .itinerary-toggle {
+    background: var(--gold); color: var(--sidebar-bg);
     padding: 12px; font-weight: bold; font-size: 14px; letter-spacing: 1px;
+    border: 0; width: 100%; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
   }
+  .itinerary-toggle .title { flex: 1; text-align: center; }
+  .itinerary-toggle .chevron { display: none; transition: transform 0.2s ease; }
+  .itinerary-list { padding-bottom: 6px; }
+  .itinerary.collapsed .itinerary-list { display: none; }
+  .itinerary.collapsed .itinerary-toggle .chevron { transform: rotate(-90deg); }
   .day-card {
     display: grid; grid-template-columns: 38px 1fr 100px; gap: 8px;
     padding: 10px; background: white; margin: 6px; border-radius: 6px;
@@ -141,7 +148,7 @@
     .header .right { text-align: left; font-size: 11px; }
 
     .container {
-      grid-template-columns: 1fr;
+      display: flex; flex-direction: column;
       padding: 8px; gap: 10px;
       min-height: auto;
     }
@@ -158,7 +165,9 @@
     .sidebar {
       max-height: none;
       overflow-y: visible;
+      order: -1;
     }
+    .itinerary-toggle .chevron { display: inline-flex; }
     .day-card {
       grid-template-columns: 32px 1fr;
       grid-template-rows: auto auto;
@@ -254,9 +263,13 @@
     </div>
   </div>
 
-  <div class="sidebar">
-    <div class="sidebar-header">DAY-BY-DAY ITINERARY &amp; OVERNIGHTS</div>
+  <div class="sidebar itinerary" id="itinerary">
+    <button class="itinerary-toggle" id="itineraryToggle" type="button" aria-expanded="true" aria-controls="itineraryList">
+      <span class="title">DAY-BY-DAY ITINERARY &amp; OVERNIGHTS</span>
+      <span class="chevron">▾</span>
+    </button>
 
+    <div class="itinerary-list" id="itineraryList">
     <div class="day-card" data-day="1"><div class="day-badge"><div class="day-circle d1">1</div></div>
       <div class="day-content"><h4>SAT · SEP 26</h4><div class="day-title">Anchorage → Whittier → Seward</div>
       <ul><li>Pickup RV at Cruise America (Anchorage)</li><li>Drive Seward Hwy — scenic stops</li><li>Visit Whittier (Begich Towers)</li><li>Anton Anderson Memorial Tunnel</li><li>Check in at Resurrection Campground (Seward)</li></ul></div>
@@ -296,6 +309,7 @@
       <div class="day-content"><h4>SAT · OCT 3</h4><div class="day-title">Palmer → Anchorage (RV Return)</div>
       <ul><li>Return RV before 11:00 AM</li><li>Flight home</li></ul></div>
       <div class="overnight"><span class="icon">🛬</span><strong>Trip Ends</strong><br>Anchorage</div></div>
+    </div>
   </div>
 </div>
 
@@ -470,6 +484,33 @@ let lockedDay = null;
 const isTouchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches;
 const isNarrow = () => window.matchMedia('(max-width: 768px)').matches;
 
+const itinerary = document.getElementById('itinerary');
+const itineraryToggle = document.getElementById('itineraryToggle');
+const setItineraryCollapsed = (collapsed) => {
+  if (!itinerary) return;
+  itinerary.classList.toggle('collapsed', collapsed);
+  if (itineraryToggle) {
+    itineraryToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  }
+};
+const syncItinerary = () => {
+  if (!itinerary) return;
+  if (isNarrow()) {
+    setItineraryCollapsed(true);
+  } else {
+    setItineraryCollapsed(false);
+  }
+};
+syncItinerary();
+
+if (itineraryToggle) {
+  itineraryToggle.addEventListener('click', () => {
+    if (!isNarrow()) return;
+    const isCollapsed = itinerary.classList.contains('collapsed');
+    setItineraryCollapsed(!isCollapsed);
+  });
+}
+
 document.querySelectorAll('.day-card').forEach(card => {
   const day = parseInt(card.getAttribute('data-day'));
   if (!isTouchDevice) {
@@ -489,6 +530,7 @@ document.querySelectorAll('.day-card').forEach(card => {
       highlightDay(day);
       // On mobile, the map is above the cards — scroll it back into view
       if (isNarrow()) {
+        setItineraryCollapsed(true);
         document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
@@ -496,7 +538,10 @@ document.querySelectorAll('.day-card').forEach(card => {
 });
 
 // Recompute Leaflet sizing when orientation changes or viewport resizes
-window.addEventListener('resize', () => { setTimeout(() => map.invalidateSize(), 200); });
+window.addEventListener('resize', () => {
+  setTimeout(() => map.invalidateSize(), 200);
+  syncItinerary();
+});
 
 // 5) Update distance card with pre-computed mileage
 const distEls = document.querySelectorAll('#distance-list .distance-row');
