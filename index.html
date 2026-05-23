@@ -464,7 +464,10 @@ function highlightDay(day) {
   else {
     // Day 2 / Day 6 local — zoom to the single stop
     const k = (dayStopKeys[day] || [])[0];
-    if (k) map.setView(COORDS[k], 11, { animate: true });
+    if (k) {
+      const zoom = day === 2 ? 15 : 11;
+      map.setView(COORDS[k], zoom, { animate: true });
+    }
   }
 }
 function resetHighlight() {
